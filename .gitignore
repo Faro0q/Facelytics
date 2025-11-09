@@ -1,0 +1,55 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+bun-debug.log*
+
+# Dependency directories
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+*.local
+
+# Vite cache
+.vite/
+
+# TypeScript cache
+*.tsbuildinfo
+*.tsbuildinfo.*
+
+# Editor and OS-specific files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Local environment variables
+.env
+.env.*
+!.env.example
+
+# Optional lock files (if using a single package manager, keep one)
+# yarn.lock
+# package-lock.json
+# pnpm-lock.yaml
+# bun.lockb
+
+# Test coverage
+coverage/
+*.lcov
+
+# Misc
+*.tgz
+.cache/
+.parcel-cache/
+.temp/
+temp/

@@ -1,0 +1,326 @@
+/* ===== Global Layout ===== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body,
+html,
+#root {
+  height: 100%;
+  width: 100%;
+  background-color: #0e1015;
+  color: #eaeaea;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Center the app in the viewport */
+.app {
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 4rem 2rem;
+  background: radial-gradient(circle at top, #151820 0%, #0e1015 100%);
+}
+
+/* Main card */
+.card {
+  width: 100%;
+  max-width: 1500px;
+  padding: 2.5rem;
+  border-radius: 1.5rem;
+  background: rgba(22, 25, 34, 0.95);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ===== Headings ===== */
+h1 {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(90deg, #ff8c00, #ff5100);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+p {
+  margin-bottom: 1.5rem;
+  color: #a5a8b1;
+}
+
+/* ===== Search Bar ===== */
+.search-bar {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.search-bar input {
+  flex: 1;
+  padding: 0.8rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(20, 22, 28, 0.95);
+  color: #eaeaea;
+  font-size: 1rem;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+
+.search-bar input:focus {
+  border: 1px solid #ff8c00;
+  box-shadow: 0 0 8px rgba(255, 140, 0, 0.3);
+  outline: none;
+}
+
+.search-bar button {
+  padding: 0.8rem 1.4rem;
+  border-radius: 0.75rem;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(90deg, #ff8c00, #ff5100);
+  color: #fff;
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+.search-bar button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  opacity: 0.9;
+}
+
+.search-bar button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ===== Error ===== */
+.error {
+  margin-bottom: 1rem;
+  padding: 0.8rem 1rem;
+  border-radius: 0.75rem;
+  background: rgba(255, 80, 80, 0.1);
+  border: 1px solid rgba(255, 80, 80, 0.2);
+  color: #ffbdbd;
+  font-size: 0.95rem;
+}
+
+/* ===== Team List ===== */
+.team-list {
+  margin-bottom: 2rem;
+}
+
+.team-list .label {
+  font-size: 0.9rem;
+  color: #a5a8b1;
+  margin-bottom: 0.6rem;
+}
+
+.team-item {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.7rem 1rem;
+  margin-bottom: 0.4rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(20, 22, 28, 0.95);
+  color: #eaeaea;
+  cursor: pointer;
+  text-align: left;
+  transition: border 0.2s, background 0.2s;
+}
+
+.team-item:hover {
+  border: 1px solid rgba(255, 140, 0, 0.7);
+  background: rgba(28, 30, 38, 0.95);
+}
+
+.team-item.active {
+  border: 1px solid #ff8c00;
+  background: rgba(28, 30, 38, 0.98);
+}
+
+.team-item img {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
+.team-name {
+  font-weight: 500;
+}
+
+.team-meta {
+  font-size: 0.8rem;
+  color: #a5a8b1;
+}
+
+/* ===== Stats Card ===== */
+.stats-card {
+  padding: 1.5rem;
+  border-radius: 1rem;
+  background: rgba(20, 22, 28, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  margin-top: 1rem;
+}
+
+.team-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.team-header img {
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  object-fit: cover;
+  border: 2px solid #ff8c00;
+}
+
+.team-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.team-subtitle {
+  font-size: 0.8rem;
+  color: #a5a8b1;
+}
+
+/* ===== Lifetime Stats ===== */
+.lifetime-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  margin-top: 0.75rem;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(28, 30, 38, 0.9);
+  padding: 0.8rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.stat div:first-child {
+  font-size: 0.85rem;
+  color: #a5a8b1;
+  margin-bottom: 0.2rem;
+}
+
+.stat strong {
+  font-size: 1rem;
+  color: #fff;
+}
+
+/* ===== Segments (Maps / Queues) ===== */
+.segments-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  margin-top: 1rem;
+}
+
+.segment {
+  padding: 0.8rem;
+  border-radius: 0.75rem;
+  background: rgba(28, 30, 38, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: transform 0.2s, border 0.2s;
+}
+
+.segment:hover {
+  transform: translateY(-2px);
+  border: 1px solid rgba(255, 140, 0, 0.4);
+}
+
+.segment-label {
+  font-weight: 500;
+  color: #fff;
+  margin-bottom: 0.25rem;
+}
+
+.segment-meta {
+  color: #a5a8b1;
+  font-size: 0.8rem;
+}
+
+.record-pill {
+  margin-top: 0.3rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(129, 140, 248, 0.12);
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.record-total {
+  color: #9ca3af;
+  font-weight: 400;
+}
+
+.opponent-link {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  color: #38bdf8;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.opponent-link:hover {
+  color: #22c55e;
+}
+
+.view-link {
+  margin-left: 0.5rem;
+  color: #f97316;
+  font-size: 0.8rem;
+}
+
+.locations-line,
+.map-stats-row {
+  margin-top: 0.35rem;
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+.map-stats-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.map-pill {
+  padding: 0.18rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.96);
+  border: 1px solid rgba(75, 85, 99, 0.9);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+}
+
+.map-name {
+  font-weight: 500;
+}
+
+.map-count {
+  color: #9ca3af;
+  font-size: 0.75rem;
+}
