@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Background -->
+  <rect width="64" height="64" rx="12" fill="#0a0a0a"></rect>
+
+  <!-- Outer radar ring -->
+  <circle cx="32" cy="32" r="22" stroke="#f97316" stroke-width="3" fill="none" opacity="0.95"></circle>
+
+  <!-- Inner ring -->
+  <circle cx="32" cy="32" r="10" stroke="#f97316" stroke-width="2" fill="none" opacity="0.85"></circle>
+
+  <!-- Cross lines -->
+  <line x1="32" y1="10" x2="32" y2="54" stroke="#f97316" stroke-width="2" opacity="0.8"></line>
+  <line x1="10" y1="32" x2="54" y2="32" stroke="#f97316" stroke-width="2" opacity="0.8"></line>
+
+  <!-- Radar sweep arc -->
+  <path d="M32 32 L54 26 A22 22 0 0 0 32 10 Z" fill="#f97316" fill-opacity="0.15"></path>
+
+  <!-- Pulse dot -->
+  <circle cx="45" cy="23" r="3" fill="#f97316"></circle>
+</svg>
