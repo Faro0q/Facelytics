@@ -256,14 +256,6 @@ export async function getChampionshipTeamsIndex(
   );
 
   championshipTeamsCache[championshipId] = list;
-
-  console.log(
-    "[FACEIT] Championship team index",
-    championshipId,
-    "teams:",
-    list.length
-  );
-
   return list;
 }
 
@@ -287,7 +279,6 @@ export async function getTeamLeagueMatchesForChampionship(
 
   // 1) From championship list
   const allChamp = await getAllChampionshipMatches(championshipId);
-
   const fromChamp = allChamp.filter((m: any) => {
     const f1 = m?.teams?.faction1;
     const f2 = m?.teams?.faction2;
@@ -303,20 +294,37 @@ export async function getTeamLeagueMatchesForChampionship(
     const roster: any[] =
       team.roster || team.members || team.players || [];
 
-    const candidates: string[] = [
-      leaderId,
-      ...roster.map((p: any) => p.player_id),
-    ].filter(Boolean);
+    // Pull all plausible player IDs from roster
+    const rosterIds = roster
+      .map((p: any) =>
+        p.player_id ||
+        p.user_id ||
+        p.id ||
+        p.guid ||
+        null
+      )
+      .filter((id: any): id is string => !!id);
+
+    // Build unique candidate list: leader + roster players
+    const candidates = Array.from(
+      new Set(
+        [leaderId, ...rosterIds].filter(
+          Boolean
+        ) as string[]
+      )
+    );
 
     const seen: Record<string, boolean> = {};
 
     for (const pid of candidates) {
       try {
-        const matches = await getTeamLeagueMatchesFromPlayerHistory(
-          teamId,
-          championshipId,
-          pid
-        );
+        const matches =
+          await getTeamLeagueMatchesFromPlayerHistory(
+            teamId,
+            championshipId,
+            pid
+          );
+
         for (const m of matches) {
           if (!m || !m.match_id) continue;
           if (!seen[m.match_id]) {
@@ -354,10 +362,10 @@ export async function getTeamLeagueMatchesForChampionship(
   // 4) Sort oldest -> newest using scheduled/started/finished
   combined.sort((a, b) => {
     const ta =
-      a.scheduled_at || a.started_at || a.finished_at || 0;
+      a.finished_at || a.started_at || a.scheduled_at || 0;
     const tb =
-      b.scheduled_at || b.started_at || b.finished_at || 0;
-    return ta - tb;
+      b.finished_at || b.started_at || b.scheduled_at || 0;
+    return tb - ta; // newest first
   });
 
   return combined;
