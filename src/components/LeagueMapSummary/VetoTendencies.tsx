@@ -55,7 +55,11 @@ const pill: React.CSSProperties = {
   borderColor: "rgba(75,85,99,0.65)",
 };
 
-export const VetoTendencies: React.FC<Props> = ({ teamId, teamName, matches }) => {
+export const VetoTendencies: React.FC<Props> = ({
+  teamId,
+  teamName,
+  matches,
+}) => {
   const [maps, setMaps] = React.useState<MapAgg[]>([]);
   const [permabans, setPermabans] = React.useState<string[]>([]);
   const [comfort, setComfort] = React.useState<string[]>([]);
@@ -100,9 +104,13 @@ export const VetoTendencies: React.FC<Props> = ({ teamId, teamName, matches }) =
       };
     });
 
-    const top = aggs
-      .filter((m) => m.picks >= 1)
-      .sort((a, b) => (b.pickRate - a.pickRate) || (b.picks - a.picks))[0] || null;
+    const top =
+      aggs
+        .filter((m) => m.picks >= 1)
+        .sort(
+          (a, b) =>
+            b.pickRate - a.pickRate || b.picks - a.picks
+        )[0] || null;
     setTopComfort(top || null);
 
     const comfy = aggs
@@ -131,11 +139,16 @@ export const VetoTendencies: React.FC<Props> = ({ teamId, teamName, matches }) =
     });
 
     setMaps(aggs);
+
     setComfort(
       comfy.sort((aName, bName) => {
         const a = aggs.find((x) => x.map === aName)!;
         const b = aggs.find((x) => x.map === bName)!;
-        return (b.pickRate - a.pickRate) || (b.picks - a.picks) || aName.localeCompare(bName);
+        return (
+          b.pickRate - a.pickRate ||
+          b.picks - a.picks ||
+          aName.localeCompare(bName)
+        );
       })
     );
     setPermabans(perma.sort());
@@ -155,7 +168,14 @@ export const VetoTendencies: React.FC<Props> = ({ teamId, teamName, matches }) =
           marginBottom: "0.4rem",
         }}
       >
-        <h4 style={{ margin: 0, fontSize: "1.02rem", fontWeight: 600, color: "#e5e7eb" }}>
+        <h4
+          style={{
+            margin: 0,
+            fontSize: "1.02rem",
+            fontWeight: 600,
+            color: "#e5e7eb",
+          }}
+        >
           Veto tendencies
         </h4>
         <div style={pill}>
@@ -197,7 +217,32 @@ export const VetoTendencies: React.FC<Props> = ({ teamId, teamName, matches }) =
         </div>
       )}
 
-      {/* Per-map breakdown with fixed columns for perfect alignment */}
+      {/* Comfort picks list (optional) */}
+      {comfort.length > 0 && (
+        <div style={{ marginBottom: "0.45rem" }}>
+          <div style={sectionLabel}>Comfort picks</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
+            {comfort.map((m) => {
+              const agg = maps.find((x) => x.map === m)!;
+              const pct = Math.round(agg.pickRate * 100);
+              return (
+                <span key={m} style={chipStyle}>
+                  <strong style={{ color: "#38bdf8" }}>{m}</strong>
+                  <span style={{ color: "#9ca3af" }}>pick</span>
+                  <span style={{ color: "#38bdf8", fontWeight: 700 }}>
+                    {pct}%
+                  </span>
+                  <span style={{ color: "#e5e7eb" }}>
+                    {agg.picks} picks / {agg.bans} bans
+                  </span>
+                </span>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Per-map breakdown with fixed columns */}
       <div style={{ marginTop: "0.2rem" }}>
         {maps.map((m) => {
           const pPct = Math.round(m.pickRate * 100);
@@ -216,12 +261,19 @@ export const VetoTendencies: React.FC<Props> = ({ teamId, teamName, matches }) =
                 fontSize: "0.9rem",
               }}
             >
-              {/* Name (fixed width column) */}
-              <div style={{ color: "#e5e7eb", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis" }}>
+              {/* Name */}
+              <div
+                style={{
+                  color: "#e5e7eb",
+                  fontWeight: 600,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
                 {m.map}
               </div>
 
-              {/* Bar (fixed width column) */}
+              {/* Bar */}
               <div
                 style={{
                   width: "100%",
@@ -242,8 +294,14 @@ export const VetoTendencies: React.FC<Props> = ({ teamId, teamName, matches }) =
                 />
               </div>
 
-              {/* Stats (right column, right-aligned) */}
-              <div style={{ color: "#9ca3af", textAlign: "right", whiteSpace: "nowrap" }}>
+              {/* Stats */}
+              <div
+                style={{
+                  color: "#9ca3af",
+                  textAlign: "right",
+                  whiteSpace: "nowrap",
+                }}
+              >
                 <span style={{ color: "#38bdf8" }}>P {pPct}%</span>
                 <span> · </span>
                 <span style={{ color: "#f97316" }}>B {bPct}%</span>

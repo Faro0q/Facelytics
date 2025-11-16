@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useLeagueMapSummary } from "../../hooks/useLeagueMapSummary";
 import { PlayerMapCard } from "./PlayerMapCard";
 import { MapsPlayed } from "./MapsPlayed";
@@ -23,14 +23,10 @@ interface LeagueMapSummaryProps {
         }
       | null
   ) => void;
-  onOpponentClick?: (
-    opponentName: string
-  ) => Promise<void> | void;
+  onOpponentClick?: (opponentName: string) => Promise<void> | void;
 }
 
-export const LeagueMapSummary: React.FC<
-  LeagueMapSummaryProps
-> = ({
+export const LeagueMapSummary: React.FC<LeagueMapSummaryProps> = ({
   teamId,
   teamName,
   championshipId,
@@ -53,16 +49,11 @@ export const LeagueMapSummary: React.FC<
     title,
   });
 
-  const [vetoVersion, setVetoVersion] = useState(0);
-
-
   // Compute W/L/T record from finished matches
   useEffect(() => {
     if (!onRecordUpdate) return;
 
-    const finishedMatches = rows.filter(
-      (r) => r.status === "FINISHED"
-    );
+    const finishedMatches = rows.filter((r) => r.status === "FINISHED");
     if (!finishedMatches.length) {
       onRecordUpdate(null);
       return;
@@ -86,15 +77,8 @@ export const LeagueMapSummary: React.FC<
     });
   }, [rows, onRecordUpdate]);
 
-  // Load manual veto summary whenever team or veto data changes
-  
-
   if (loading) {
-    return (
-      <div className="stats-card">
-        Loading league matches…
-      </div>
-    );
+    return <div className="stats-card">Loading league matches…</div>;
   }
 
   if (error) {
@@ -103,55 +87,25 @@ export const LeagueMapSummary: React.FC<
 
   if (!rows.length) return null;
 
-  const headerTitle =
-    leagueName ||
-    title ||
-    "League matches overview";
+  const headerTitle = leagueName || title || "League matches overview";
 
-  const finished: LeagueMatchView[] =
-    rows.filter(
-      (r) => r.status === "FINISHED"
-    );
-  const upcoming: LeagueMatchView[] =
-    rows.filter(
-      (r) => r.status !== "FINISHED"
-    );
+  const finished: LeagueMatchView[] = rows.filter(
+    (r) => r.status === "FINISHED"
+  );
+  const upcoming: LeagueMatchView[] = rows.filter(
+    (r) => r.status !== "FINISHED"
+  );
 
   const finishedSorted = [...finished].sort(
-    (a, b) =>
-      (b.sortKey || 0) - (a.sortKey || 0)
+    (a, b) => (b.sortKey || 0) - (a.sortKey || 0)
   );
   const upcomingSorted = [...upcoming].sort(
-    (a, b) =>
-      (a.sortKey || 0) - (b.sortKey || 0)
+    (a, b) => (a.sortKey || 0) - (b.sortKey || 0)
   );
 
-  const sortedPlayerSummaries = [
-    ...playerMapStats,
-  ].sort((a, b) =>
-    (a.nickname || "").localeCompare(
-      b.nickname || ""
-    )
+  const sortedPlayerSummaries = [...playerMapStats].sort((a, b) =>
+    (a.nickname || "").localeCompare(b.nickname || "")
   );
-
-  const handleVetoUpdate = () => {
-    setVetoVersion((v) => v + 1);
-  };
-
-  const chipStyle: React.CSSProperties = {
-    padding: "0.35rem 0.7rem",
-    borderRadius: "999px",
-    background:
-      "rgba(15,23,42,0.98)",
-    border:
-      "1px solid rgba(75,85,99,0.9)",
-    display: "inline-flex",
-    alignItems: "center",
-    gap: "0.35rem",
-    fontSize: "0.88rem",
-    color: "#e5e7eb",
-    whiteSpace: "nowrap",
-  };
 
   return (
     <div
@@ -162,11 +116,9 @@ export const LeagueMapSummary: React.FC<
         padding: "1.6rem 1.8rem",
         width: "100%",
         boxSizing: "border-box",
-        background:
-          "rgba(9,9,11,0.98)",
+        background: "rgba(9,9,11,0.98)",
         borderRadius: "1.2rem",
-        border:
-          "1px solid rgba(75,85,99,0.9)",
+        border: "1px solid rgba(75,85,99,0.9)",
       }}
     >
       <h3
@@ -189,56 +141,34 @@ export const LeagueMapSummary: React.FC<
       </div>
 
       {/* Team lineup & performance */}
-      {sortedPlayerSummaries.length >
-        0 && (
+      {sortedPlayerSummaries.length > 0 && (
         <>
           <h4
             style={{
-              marginBottom:
-                "0.45rem",
-              fontSize:
-                "1.1rem",
+              marginBottom: "0.45rem",
+              fontSize: "1.1rem",
               fontWeight: 600,
             }}
           >
-            Team lineup &
-            league performance
+            Team lineup & league performance
           </h4>
           <div
             style={{
-              display:
-                "grid",
-              gridTemplateColumns:
-                "repeat(auto-fit, minmax(230px, 1fr))",
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))",
               gap: "1rem",
             }}
           >
-            {sortedPlayerSummaries.map(
-              (p) => (
-                <PlayerMapCard
-                  key={
-                    p.playerId
-                  }
-                  summary={
-                    p
-                  }
-                  players={
-                    players
-                  }
-                />
-              )
-            )}
+            {sortedPlayerSummaries.map((p) => (
+              <PlayerMapCard key={p.playerId} summary={p} players={players} />
+            ))}
           </div>
         </>
       )}
 
       {/* API-based stats */}
-      <MapsPlayed
-        mapStats={mapStats}
-      />
-      <LocationsPlayed
-        locations={locations}
-      />
+      <MapsPlayed mapStats={mapStats} />
+      <LocationsPlayed locations={locations} />
       <VetoTendencies
         teamId={teamId}
         teamName={teamName}
@@ -247,20 +177,11 @@ export const LeagueMapSummary: React.FC<
 
       <UpcomingMatches
         matches={upcomingSorted}
-        onOpponentClick={
-          onOpponentClick
-        }
+        onOpponentClick={onOpponentClick}
       />
       <FinishedMatches
         matches={finishedSorted}
-        onOpponentClick={
-          onOpponentClick
-        }
-        teamId={teamId}
-        teamName={teamName}
-        onVetoUpdate={
-          handleVetoUpdate
-        }
+        onOpponentClick={onOpponentClick}
       />
     </div>
   );
