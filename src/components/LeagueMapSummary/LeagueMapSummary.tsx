@@ -6,10 +6,7 @@ import { LocationsPlayed } from "./LocationsPlayed";
 import { UpcomingMatches } from "./UpcomingMatches";
 import { FinishedMatches } from "./FinishedMatches";
 import type { LeagueMatchView } from "../../types/league";
-import {
-  getTeamVetoSummary,
-  type TeamVetoSummary,
-} from "../../scouting/manualOpponentVetoStore";
+import { VetoTendencies } from "./VetoTendencies";
 
 interface LeagueMapSummaryProps {
   teamId: string;
@@ -57,8 +54,7 @@ export const LeagueMapSummary: React.FC<
   });
 
   const [vetoVersion, setVetoVersion] = useState(0);
-  const [vetoSummary, setVetoSummary] =
-    useState<TeamVetoSummary | null>(null);
+
 
   // Compute W/L/T record from finished matches
   useEffect(() => {
@@ -91,14 +87,7 @@ export const LeagueMapSummary: React.FC<
   }, [rows, onRecordUpdate]);
 
   // Load manual veto summary whenever team or veto data changes
-  useEffect(() => {
-    (async () => {
-      const summary = await getTeamVetoSummary(
-        teamId
-      );
-      setVetoSummary(summary);
-    })();
-  }, [teamId, vetoVersion]);
+  
 
   if (loading) {
     return (
@@ -250,270 +239,11 @@ export const LeagueMapSummary: React.FC<
       <LocationsPlayed
         locations={locations}
       />
-
-      {/* Manual veto tendencies */}
-      {vetoSummary && (
-        <div
-          style={{
-            marginTop:
-              "0.9rem",
-          }}
-        >
-          <div
-            style={{
-              marginBottom:
-                "0.3rem",
-              fontSize:
-                "0.95rem",
-              fontWeight: 600,
-              color: "#e5e7eb",
-            }}
-          >
-            Veto tendencies{" "}
-            <span
-              style={{
-                fontSize:
-                  "0.78rem",
-                color:
-                  "#9ca3af",
-                fontWeight: 400,
-              }}
-            >
-              ({vetoSummary.matchesTracked} matches
-              scouted)
-            </span>
-          </div>
-
-          {/* Highlight permabans & comfort picks */}
-          <div
-            style={{
-              display:
-                "flex",
-              flexWrap:
-                "wrap",
-              gap: "0.4rem",
-              marginBottom:
-                "0.25rem",
-            }}
-          >
-            {vetoSummary
-              .likelyPermabans
-              .map(
-                (
-                  map
-                ) => (
-                  <div
-                    key={
-                      "pb-" +
-                      map
-                    }
-                    style={{
-                      ...chipStyle,
-                      borderColor:
-                        "rgba(249,115,22,0.8)",
-                    }}
-                  >
-                    <span
-                      style={{
-                        width:
-                          "6px",
-                        height:
-                          "6px",
-                        borderRadius:
-                          "999px",
-                        backgroundColor:
-                          "#f97316",
-                      }}
-                    />
-                    <span>
-                      {map}
-                    </span>
-                    <span
-                      style={{
-                        color:
-                          "#f97316",
-                        fontSize:
-                          "0.78rem",
-                      }}
-                    >
-                      permaban
-                    </span>
-                  </div>
-                )
-              )}
-
-            {vetoSummary
-              .likelyComfortPicks
-              .map(
-                (
-                  map
-                ) => (
-                  <div
-                    key={
-                      "cp-" +
-                      map
-                    }
-                    style={{
-                      ...chipStyle,
-                      borderColor:
-                        "rgba(56,189,248,0.8)",
-                    }}
-                  >
-                    <span
-                      style={{
-                        width:
-                          "6px",
-                        height:
-                          "6px",
-                        borderRadius:
-                          "999px",
-                        backgroundColor:
-                          "#38bdf8",
-                      }}
-                    />
-                    <span>
-                      {map}
-                    </span>
-                    <span
-                      style={{
-                        color:
-                          "#38bdf8",
-                        fontSize:
-                          "0.78rem",
-                      }}
-                    >
-                      comfort
-                    </span>
-                  </div>
-                )
-              )}
-          </div>
-
-          {/* All map tendencies */}
-          <div
-            style={{
-              display:
-                "flex",
-              flexWrap:
-                "wrap",
-              gap: "0.4rem",
-            }}
-          >
-            {vetoSummary.maps.map(
-              (m) => {
-                const hasPicks =
-                  m.picks > 0;
-                const hasBans =
-                  m.bans > 0;
-
-                const pickPct =
-                  hasPicks &&
-                  m.pickRate >
-                    0
-                    ? Math.round(
-                        m.pickRate *
-                          100
-                      )
-                    : 0;
-                const banPct =
-                  hasBans &&
-                  m.banRate >
-                    0
-                    ? Math.round(
-                        m.banRate *
-                          100
-                      )
-                    : 0;
-
-                let countsLabel =
-                  "";
-                if (
-                  hasPicks &&
-                  hasBans
-                ) {
-                  countsLabel = `${m.picks} picks / ${m.bans} bans`;
-                } else if (
-                  hasPicks
-                ) {
-                  countsLabel = `${m.picks} picks`;
-                } else if (
-                  hasBans
-                ) {
-                  countsLabel = `${m.bans} bans`;
-                }
-
-                return (
-                  <div
-                    key={
-                      m.map
-                    }
-                    style={
-                      chipStyle
-                    }
-                  >
-                    <span>
-                      {m.map}
-                    </span>
-
-                    {pickPct >
-                      0 && (
-                      <span
-                        style={{
-                          color:
-                            "#38bdf8",
-                          fontSize:
-                            "0.78rem",
-                          fontWeight: 500,
-                        }}
-                      >
-                        P{" "}
-                        {
-                          pickPct
-                        }
-                        %
-                      </span>
-                    )}
-
-                    {banPct >
-                      0 && (
-                      <span
-                        style={{
-                          color:
-                            "#f97316",
-                          fontSize:
-                            "0.78rem",
-                          fontWeight: 500,
-                        }}
-                      >
-                        B{" "}
-                        {
-                          banPct
-                        }
-                        %
-                      </span>
-                    )}
-
-                    {countsLabel && (
-                      <span
-                        style={{
-                          color:
-                            "#9ca3af",
-                          fontSize:
-                            "0.74rem",
-                        }}
-                      >
-                        {
-                          countsLabel
-                        }
-                      </span>
-                    )}
-                  </div>
-                );
-              }
-            )}
-          </div>
-        </div>
-      )}
+      <VetoTendencies
+        teamId={teamId}
+        teamName={teamName}
+        matches={finishedSorted}
+      />
 
       <UpcomingMatches
         matches={upcomingSorted}

@@ -1,3 +1,5 @@
+// src/api/faceit.ts
+
 const FACEIT_API_BASE = "https://open.faceit.com/data/v4";
 
 const headers = () => ({
@@ -204,13 +206,6 @@ export async function getAllChampionshipMatches(
 
   championshipMatchesCache[championshipId] = all;
 
-  console.log(
-    "[FACEIT] Loaded all matches for championship",
-    championshipId,
-    "total:",
-    all.length
-  );
-
   return all;
 }
 
@@ -259,6 +254,172 @@ export async function getChampionshipTeamsIndex(
   return list;
 }
 
+// ========== VETO HISTORY (Faceit democracy API) ==========
+
+export type DemocracyVetoHistory = {
+  map?: {
+    entities?: Array<Record<string, any>>;
+    pick?: string[];
+    picks?: string[];
+  };
+  location?: {
+    entities?: Array<Record<string, any>>;
+    pick?: string[];
+    picks?: string[];
+  };
+  voting?: Record<string, any>;
+  [key: string]: any;
+};
+
+function getEntityName(ent: any): string {
+  return (
+    ent?.name ||
+    ent?.class_name ||
+    ent?.game_map_id ||
+    ent?.guid ||
+    ent?.id ||
+    ""
+  );
+}
+function getEntityId(ent: any): string {
+  return (
+    ent?.guid ||
+    ent?.game_map_id ||
+    ent?.class_name ||
+    ent?.name ||
+    ent?.id ||
+    ""
+  );
+}
+
+function parseDemocracyHistoryToVeto(
+  h: DemocracyVetoHistory
+): { picked: string[]; banned: string[]; locations: string[] } {
+  const picked: string[] = [];
+  const banned: string[] = [];
+  const locations: string[] = [];
+
+  const map = h?.map ?? h?.voting?.map;
+  const loc = h?.location ?? h?.voting?.location;
+
+  if (map?.entities?.length) {
+    const rawPicks =
+      Array.isArray(map.picks) && map.picks.length
+        ? map.picks
+        : Array.isArray(map.pick)
+        ? map.pick
+        : [];
+
+    const pickIds = new Set<string>(
+      rawPicks
+        .map((p: any) =>
+          typeof p === "string"
+            ? p
+            : p?.id ||
+              p?.game_map_id ||
+              p?.class_name ||
+              p?.guid ||
+              ""
+        )
+        .filter(Boolean)
+        .map(String)
+    );
+
+    const pickedEntities = map.entities.filter((ent: any) =>
+      pickIds.has(String(getEntityId(ent)))
+    );
+    const bannedEntities = map.entities.filter(
+      (ent: any) => !pickIds.has(String(getEntityId(ent)))
+    );
+
+    picked.push(...pickedEntities.map(getEntityName).filter(Boolean));
+    banned.push(...bannedEntities.map(getEntityName).filter(Boolean));
+  }
+
+  if (loc?.entities?.length) {
+    const rawLocPicks =
+      Array.isArray(loc.picks) && loc.picks.length
+        ? loc.picks
+        : Array.isArray(loc.pick)
+        ? loc.pick
+        : [];
+
+    const locPickIds = new Set<string>(
+      rawLocPicks
+        .map((p: any) =>
+          typeof p === "string"
+            ? p
+            : p?.id ||
+              p?.game_location_id ||
+              p?.class_name ||
+              p?.guid ||
+              ""
+        )
+        .filter(Boolean)
+        .map(String)
+    );
+
+    const pickedLocations = loc.entities
+      .filter((ent: any) => locPickIds.has(String(getEntityId(ent))))
+      .map(getEntityName)
+      .filter(Boolean);
+
+    locations.push(...pickedLocations);
+  }
+
+  // Dedup while preserving order
+  const dedup = (arr: string[]) => Array.from(new Set(arr));
+  return {
+    picked: dedup(picked),
+    banned: dedup(banned),
+    locations: dedup(locations),
+  };
+}
+
+/**
+ * Fetch veto history from Faceit democracy web API (not Open API).
+ * Returns null on 404 or if nothing parseable is found.
+ *
+ * NOTE: If you hit CORS in production, proxy via a serverless function:
+ *   /api/faceit-democracy?matchId=...
+ */
+export async function getMatchVetoHistory(
+  matchId: string
+): Promise<{ picked: string[]; banned: string[]; locations: string[] } | null> {
+  if (!matchId) return null;
+
+  try {
+    const url = `https://www.faceit.com/api/democracy/v1/match/${matchId}/history`;
+    const res = await fetch(url, {
+      headers: { accept: "application/json, text/plain, */*" },
+      credentials: "omit",
+      method: "GET",
+    });
+
+    if (res.status === 404) return null;
+    if (!res.ok) {
+      console.warn("[VETO] democracy fetch failed", matchId, res.status);
+      return null;
+    }
+
+    const data = (await res.json()) as DemocracyVetoHistory;
+    const parsed = parseDemocracyHistoryToVeto(data);
+
+    if (
+      parsed.picked.length === 0 &&
+      parsed.banned.length === 0 &&
+      parsed.locations.length === 0
+    ) {
+      return null;
+    }
+
+    return parsed;
+  } catch (err) {
+    console.warn("[VETO] democracy fetch error", matchId, err);
+    return null;
+  }
+}
+
 // ========== FINAL: TEAM LEAGUE MATCHES (HYBRID APPROACH) ==========
 
 /**
@@ -269,7 +430,7 @@ export async function getChampionshipTeamsIndex(
  *    - any finished that appear there
  * 2. Uses player history for team members as fallback to catch:
  *    - finished matches that might not appear in some pages
- * 3. Merges by match_id.
+ * 3. Merges by match_id and sorts newest -> oldest
  */
 export async function getTeamLeagueMatchesForChampionship(
   teamId: string,
@@ -308,9 +469,7 @@ export async function getTeamLeagueMatchesForChampionship(
     // Build unique candidate list: leader + roster players
     const candidates = Array.from(
       new Set(
-        [leaderId, ...rosterIds].filter(
-          Boolean
-        ) as string[]
+        [leaderId, ...rosterIds].filter(Boolean) as string[]
       )
     );
 
@@ -318,12 +477,11 @@ export async function getTeamLeagueMatchesForChampionship(
 
     for (const pid of candidates) {
       try {
-        const matches =
-          await getTeamLeagueMatchesFromPlayerHistory(
-            teamId,
-            championshipId,
-            pid
-          );
+        const matches = await getTeamLeagueMatchesFromPlayerHistory(
+          teamId,
+          championshipId,
+          pid
+        );
 
         for (const m of matches) {
           if (!m || !m.match_id) continue;
@@ -332,7 +490,6 @@ export async function getTeamLeagueMatchesForChampionship(
             fromHistory.push(m);
           }
         }
-        // we don't break here; multiple players might reveal extra matches
       } catch {
         // ignore this candidate
       }
@@ -359,12 +516,10 @@ export async function getTeamLeagueMatchesForChampionship(
 
   const combined: any[] = Object.values(byId);
 
-  // 4) Sort oldest -> newest using scheduled/started/finished
+  // 4) Sort newest -> oldest using finished/started/scheduled timestamps
   combined.sort((a, b) => {
-    const ta =
-      a.finished_at || a.started_at || a.scheduled_at || 0;
-    const tb =
-      b.finished_at || b.started_at || b.scheduled_at || 0;
+    const ta = a.finished_at || a.started_at || a.scheduled_at || 0;
+    const tb = b.finished_at || b.started_at || b.scheduled_at || 0;
     return tb - ta; // newest first
   });
 
